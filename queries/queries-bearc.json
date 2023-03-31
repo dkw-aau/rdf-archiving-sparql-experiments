@@ -1,0 +1,173 @@
+{
+    "0": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dc:modified ?modified_date ."
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "1": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dcat:distribution ?distribution .",
+            "3": "?distribution dcat:accessURL ?URL ."
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "2": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dc:modified ?modified_date ."
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "3": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dcat:contactPoint ?contact .",
+            "3": "?contact vcard:fn ?name.",
+            "4": "OPTIONAL{",
+            "5": "\t?contact vcard:hasEmail ?email .",
+            "6": "}"
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>",
+            "3": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "4": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dc:title ?title .",
+            "3": "?dataset dcat:distribution ?distribution .",
+            "4": "?distribution dcat:accessURL ?URL .",
+            "5": "?distribution dc:license eu:legal_notices_en.htm .",
+            "6": "FILTER regex(?title, \"region\")"
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX eu: <http://ec.europa.eu/geninfo/>",
+            "3": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "5": {
+        "core": {
+            "1": "{",
+            "2": "\t?dataset rdf:type dcat:Dataset .",
+            "3": "\t?dataset dc:title ?title .",
+            "4": "\t?dataset dcat:distribution ?distribution .",
+            "5": "\t?distribution dcat:accessURL ?URL .",
+            "6": "\t?distribution dc:description \"Austria\" .",
+            "7": "}",
+            "8": "UNION",
+            "9": "{",
+            "10": "\t?dataset rdf:type dcat:Dataset .",
+            "11": "\t?dataset dc:title ?title .",
+            "12": "\t?dataset dcat:distribution ?distribution .",
+            "13": "\t?distribution dcat:accessURL ?URL .",
+            "14": "\t?distribution dc:description \"Germany\" .",
+            "15": "}"
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "6": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dc:title ?title .",
+            "3": "?dataset dc:issued ?date .",
+            "4": "?dataset dc:modified ?date ."
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "7": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dc:title ?title .",
+            "3": "?dataset dc:issued ?date .",
+            "4": "?dataset dcat:distribution ?distribution .",
+            "5": "?distribution dcat:accessURL ?URL .",
+            "6": "FILTER (?date>\"2014-12-31T23:59:59\"^^xsd:dateTime)"
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>",
+            "3": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "8": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dc:title ?title .",
+            "3": "?dataset dcat:distribution ?distribution .",
+            "4": "?distribution dcat:accessURL ?URL .",
+            "5": "?distribution dcat:mediaType \"text/csv\" .",
+            "6": "?distribution dc:title ?filetitle .",
+            "7": "?distribution dc:description ?description ."
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "9": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dc:title ?title .",
+            "3": "?dataset dcat:distribution ?distr1 .",
+            "4": "?distr1 dcat:accessURL ?URL1 .",
+            "5": "?distr1 dcat:mediaType \"text/csv\" .",
+            "6": "?distr1 dc:title ?titleFile1 .",
+            "7": "?distr1 dc:description ?description1 .",
+            "8": "?dataset dcat:distribution ?distr2 .",
+            "9": "?distr2 dcat:accessURL ?URL2 .",
+            "10": "?distr2 dcat:mediaType \"text/tab-separated-values\" .",
+            "11": "?distr2 dc:title ?titleFile2 .",
+            "12": "?distr2 dc:description ?description2 ."
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    },
+    "10": {
+        "core": {
+            "1": "?dataset rdf:type dcat:Dataset .",
+            "2": "?dataset dc:title ?title .",
+            "3": "?dataset dcat:distribution ?distribution .",
+            "4": "?distribution dcat:accessURL ?URL .",
+            "5": "?distribution dcat:mediaType ?mediaType .",
+            "6": "?distribution dc:title ?filetitle .",
+            "7": "?distribution dc:description ?description ."
+        },
+        "header": {
+            "0": "PREFIX dcat: <http://www.w3.org/ns/dcat#>",
+            "1": "PREFIX dc: <http://purl.org/dc/terms/>",
+            "2": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>"
+        }
+    }
+}

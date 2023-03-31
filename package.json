@@ -2,15 +2,25 @@
   "name": "rdf-archiving-sparql-experiments",
   "version": "1.0.0",
   "description": "Experimental code for OSTRICH and SPARQL",
-  "main": "index.js",
+  "main": "build/index.js",
   "repository": "git@github.com:dkw-aau/rdf-archiving-sparql-experiments.git",
   "author": "Olivier Pelgrin <olivier@cs.aau.dk>",
   "license": "MIT",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rm build/*",
+    "lint": "eslint . --ext .ts --cache",
+    "build": "tsc",
+    "start": "node ."
+  },
   "devDependencies": {
     "@types/node": "^18.15.11",
     "@typescript-eslint/eslint-plugin": "^5.57.0",
     "@typescript-eslint/parser": "^5.57.0",
     "eslint": "^8.37.0",
     "typescript": "^5.0.2"
+  },
+  "dependencies": {
+    "@comunica/types-versioning": "^2.0.1-alpha.1.0"
   }
 }
