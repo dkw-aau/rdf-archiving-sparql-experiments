@@ -1,15 +1,22 @@
-import { QueryManager } from "./query";
-import {getNumberVersion} from "./evaluator";
+import { Evaluator, getNumberVersion } from "./evaluator";
 
-function main (): void {
-    const manager = new QueryManager("./queries/queries-bearc.json");
-    const q1 = manager.getQuery(0, {type : "delta-materialization", versionStart: 2, versionEnd: 5, queryAdditions: true});
-    console.log(q1);
-
-    console.log(manager.numberOfQuery);
-    getNumberVersion("bearc.ostrich").then((num) => {
-        console.log(num);
-    });
+// Process arguments: node index.js <path-to-ostrich> <path-to-query-file-json> <num replications>(optional)
+async function main (): Promise<void> {
+    if (process.argv.length < 4 || process.argv.length > 5) {
+        console.log("Arguments: <path-to-ostrich> <path-to-query-file-json> <num replications>(optional)");
+        return;
+    }
+    const ostrichPath = process.argv[2];
+    const queryPath = process.argv[3];
+    let replications = 5;
+    if (typeof process.argv[4] !== "undefined") {
+        replications = parseInt(process.argv[4]);
+    }
+    const numVersions = await getNumberVersion(ostrichPath);
+    const evaluator = new Evaluator(ostrichPath, queryPath, replications, numVersions);
+    await evaluator.measureQuerying();
 }
 
-main();
+main().then().catch((reason) => {
+    console.error(reason);
+});

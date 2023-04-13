@@ -1,7 +1,7 @@
 import { fromPath } from "ostrich-bindings";
 import { QueryEngine } from "@comunica/query-sparql-ostrich";
 import { hrtime } from "node:process";
-import {QueryManager} from "./query";
+import { QueryManager } from "./query";
 
 
 export async function getNumberVersion (storePath: string): Promise<number> {
@@ -24,20 +24,26 @@ export class Evaluator {
     }
 
     private async measureQueryRuntime (queryString: string): Promise<[bigint, number]> {
-        const start = hrtime.bigint();
-        let end: bigint;
-        const bindingsStream = await this.queryEngine.queryBindings(queryString, { sources: [{ type: "ostrichFile", value: this.storePath }], lenient: true });
-        let count = 0;
-        bindingsStream.on("data", (binding) => {
-            count++;
+        return new Promise((resolve, reject) => {
+            let count = 0;
+            const start = hrtime.bigint();
+            this.queryEngine.queryBindings(queryString, { sources: [{ type: "ostrichFile", value: this.storePath }], lenient: true })
+                .then(bindingsStream => {
+                    bindingsStream.on("data", binding => {
+                        count++;
+                    });
+                    bindingsStream.on("end", () => {
+                        const end = hrtime.bigint();
+                        resolve([(end - start), count]);
+                    });
+                    bindingsStream.on("error", (error) => {
+                        reject(error);
+                    });
+                })
+                .catch(reason => {
+                    reject(reason);
+                });
         });
-        bindingsStream.on("end", () => {
-            end = hrtime.bigint();
-        });
-        bindingsStream.on("error", (error) => {
-            throw new Error(error);
-        });
-        return [end - start, count];
     }
 
     private async measureQueryRuntimeReplications (queryString: string): Promise<[bigint, number]> {
