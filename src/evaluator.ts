@@ -134,8 +134,10 @@ export class Evaluator {
         if (versionStart === 0 && versionEnd === 1) {
             console.log("--- ---DELTA MATERIALIZED");
         }
-        const [runtime, results] = await this.measureRuntimeDM(queryNumber, versionStart, versionEnd);
-        console.log(`${versionStart},${versionEnd},0,0,0,0,${runtime},${results}`);
+        if (versionStart !== versionEnd) {
+            const [runtime, results] = await this.measureRuntimeDM(queryNumber, versionStart, versionEnd);
+            console.log(`${versionStart},${versionEnd},0,0,0,0,${runtime},${results}`);
+        }
         versionStart = (versionStart + 1) % 2;
         if (versionStart === 0) {
             versionEnd++;
