@@ -1,21 +1,18 @@
 import { Evaluator, getNumberVersion } from "./evaluator";
 
-// Process arguments: node index.js <path-to-ostrich> <path-to-query-file-json> <num replications>(optional) <progress-file>(optional)
+// Process arguments: node index.js <path-to-experiment-path> <num replications>(optional)
 async function main (): Promise<void> {
-    if (process.argv.length < 4 || process.argv.length > 6) {
-        console.log("Arguments: <path-to-ostrich> <path-to-query-file-json> <num replications>(optional) <progress-file>(optional)");
+    if (process.argv.length < 2 || process.argv.length > 3) {
+        console.log("Arguments: <path-to-experiment-path> <num replications>(optional)");
         return;
     }
-    const ostrichPath = process.argv[2];
-    const queryPath = process.argv[3];
+    const experimentPath = process.argv[1];
     let replications = 5;
-    if (typeof process.argv[4] !== "undefined") {
-        replications = parseInt(process.argv[4]);
+    if (typeof process.argv[2] !== "undefined") {
+        replications = parseInt(process.argv[2]);
     }
-    const progressFile = process.argv[5];
-    const numVersions = await getNumberVersion(ostrichPath);
-    const evaluator = new Evaluator(ostrichPath, queryPath, replications, numVersions, progressFile);
-    // await evaluator.measureQuerying();
+    const numVersions = await getNumberVersion(`${experimentPath}/data.ostrich`);
+    const evaluator = new Evaluator(experimentPath, replications, numVersions);
     await evaluator.measureQueryingSave();
 }
 
