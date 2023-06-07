@@ -26,4 +26,4 @@ RUN yarn link ostrich-bindings && yarn link @comunica/query-sparql-ostrich && ya
 # Node to production
 ENV NODE_ENV=production
 
-ENTRYPOINT [ "node", "./build/index.js", "/var/exp/data.ostrich", "/var/exp/queries/queries.json", "5", "/var/exp/progress.txt" ]
+ENTRYPOINT [ "node", "./build/index.js", "/var/exp/", "5"]
