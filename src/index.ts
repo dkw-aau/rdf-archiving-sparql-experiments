@@ -11,7 +11,7 @@ async function main (): Promise<void> {
     if (typeof process.argv[3] !== "undefined") {
         replications = parseInt(process.argv[3], 10);
     }
-    let limit = -1;
+    let limit = undefined;
     if (typeof process.argv[4] !== "undefined") {
         limit = parseInt(process.argv[4], 10);
     }
