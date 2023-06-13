@@ -32,26 +32,25 @@ export class Evaluator {
 
     /**
      * Measure the runtime of a query.
-     * Return tuple (time, time-to-first-result, number-of-results)
+     * Return tuple (time, number-of-results) and write the time of arrival of each results in the given file.
      * @param queryString the SPARQL query string
      * @private
      */
-    private async measureQueryRuntime (queryString: string): Promise<[bigint, bigint, number]> {
+    private async measureQueryRuntime (queryString: string): Promise<[bigint, number, Map<number,number>]> {
         return new Promise((resolve, reject) => {
             let count = 0;
-            let first = BigInt(0);
+            const timeMap = new Map<number, number>;
             const start = hrtime.bigint();
             this.queryEngine.queryBindings(queryString, { sources: [{ type: "ostrichFile", value: this.storePath }], lenient: true })
                 .then(bindingsStream => {
                     bindingsStream.on("data", binding => {
-                        if (first === BigInt(0)) {
-                            first = hrtime.bigint() - start;
-                        }
+                        const resTime = Number(hrtime.bigint() - start) / 1000;
                         count++;
+                        timeMap.set(count, resTime);
                     });
                     bindingsStream.on("end", () => {
                         const end = hrtime.bigint();
-                        resolve([(end - start), first, count]);
+                        resolve([(end - start), count, timeMap]);
                     });
                     bindingsStream.on("error", (error) => {
                         reject(error);
@@ -63,54 +62,78 @@ export class Evaluator {
         });
     }
 
-    private async measureQueryRuntimeReplications (queryString: string): Promise<[bigint, bigint, number, number]> {
+    private async measureQueryRuntimeReplications (queryString: string): Promise<[bigint, number, number, Map<number, number>]> {
         // Query runtime measurement
         let runtimes = BigInt(0);
-        let firstTimes = BigInt(0);
         let results = 0;
+        const avgTimeMap = new Map<number, number>;
         for (let i = 0; i < this.queryReplications; i++) {
             try {
-                const [runtime, firstTime, queryCount] = await this.measureQueryRuntime(queryString);
+                const [runtime, queryCount, timeMap] = await this.measureQueryRuntime(queryString);
                 runtimes += runtime;
-                firstTimes += firstTime;
                 results += queryCount;
+                for (const [num, time] of timeMap) {
+                    if (avgTimeMap.has(num)) {
+                        avgTimeMap.set(num, (avgTimeMap.get(num)+time));
+                    } else {
+                        avgTimeMap.set(num, time);
+                    }
+                }
             } catch (e) {
                 console.error(e);
             }
         }
+        // Compute avg for each result time across runs
+        for (const [num, time] of avgTimeMap) {
+            avgTimeMap.set(num, (time / this.queryReplications));
+        }
         const runtimeMicroSeconds = (runtimes / BigInt(this.queryReplications)) / BigInt(1000);
-        const firstRuntimeMicroSeconds = (firstTimes / BigInt(this.queryReplications)) / BigInt(1000);
         const count = results / this.queryReplications;
         const timeSeconds = Number(runtimeMicroSeconds) / 1000 / 1000;
         const throughput = count / timeSeconds;
-        return [runtimeMicroSeconds, firstRuntimeMicroSeconds, count, throughput];
+        return [runtimeMicroSeconds, count, throughput, avgTimeMap];
     }
 
-    private async measureRuntimeVM (queryNumber: number, version: number): Promise<[bigint, bigint, number, number]> {
+    private async measureRuntimeVM (queryNumber: number, version: number): Promise<[bigint, number, number]> {
         const queryString = this.queryManager.getQuery(queryNumber, { type: "version-materialization", version }, this.limit);
-        const [runtime, firstTime, results, throughput] = await this.measureQueryRuntimeReplications(queryString);
+        const [runtime, results, throughput, timeMap] = await this.measureQueryRuntimeReplications(queryString);
         if (typeof this.progressFilePath !== "undefined") {
             writeFileSync(this.progressFilePath, `VM ${queryNumber} ${version}`);
         }
-        return [runtime, firstTime, results, throughput];
+        const resultsTimeFileName = `${this.expPath}/vm-${queryNumber}-${version}.csv`;
+        writeFileSync(resultsTimeFileName, "Result,Time\n", { encoding: "utf8", flag: "w" });
+        for (const [num, time] of timeMap) {
+            writeFileSync(resultsTimeFileName, `${num},${time}\n`, { encoding: "utf8", flag: "a" });
+        }
+        return [runtime, results, throughput];
     }
 
-    private async measureRuntimeDM (queryNumber: number, versionStart: number, versionEnd: number): Promise<[bigint, bigint, number, number]> {
+    private async measureRuntimeDM (queryNumber: number, versionStart: number, versionEnd: number): Promise<[bigint, number, number]> {
         const queryString = this.queryManager.getQuery(queryNumber, { type: "delta-materialization", versionStart, versionEnd, queryAdditions: true }, this.limit);
-        const [runtime, firstTime, results, throughput] = await this.measureQueryRuntimeReplications(queryString);
+        const [runtime, results, throughput, timeMap] = await this.measureQueryRuntimeReplications(queryString);
         if (typeof this.progressFilePath !== "undefined") {
             writeFileSync(this.progressFilePath, `DM ${queryNumber} ${versionStart} ${versionEnd}`);
         }
-        return [runtime, firstTime, results, throughput];
+        const resultsTimeFileName = `${this.expPath}/dm-${queryNumber}-${versionStart}-${versionEnd}.csv`;
+        writeFileSync(resultsTimeFileName, "Result,Time\n", { encoding: "utf8", flag: "w" });
+        for (const [num, time] of timeMap) {
+            writeFileSync(resultsTimeFileName, `${num},${time}\n`, { encoding: "utf8", flag: "a" });
+        }
+        return [runtime, results, throughput];
     }
 
-    private async measureRuntimeVQ (queryNumber: number): Promise<[bigint, bigint, number, number]> {
+    private async measureRuntimeVQ (queryNumber: number): Promise<[bigint, number, number]> {
         const queryString = this.queryManager.getQuery(queryNumber, { type: "version-query" }, this.limit);
-        const [runtime, firstTime, results, throughput] = await this.measureQueryRuntimeReplications(queryString);
+        const [runtime, results, throughput, timeMap] = await this.measureQueryRuntimeReplications(queryString);
         if (typeof this.progressFilePath !== "undefined") {
             writeFileSync(this.progressFilePath, `VQ ${queryNumber}`);
         }
-        return [runtime, firstTime, results, throughput];
+        const resultsTimeFileName = `${this.expPath}/vq-${queryNumber}.csv`;
+        writeFileSync(resultsTimeFileName, "Result,Time\n", { encoding: "utf8", flag: "w" });
+        for (const [num, time] of timeMap) {
+            writeFileSync(resultsTimeFileName, `${num},${time}\n`, { encoding: "utf8", flag: "a" });
+        }
+        return [runtime, results, throughput];
     }
 
     /**
@@ -129,11 +152,11 @@ export class Evaluator {
             return this.measureQueryingDM(queryNumber, 0, 1);
         }
         if (version === 0 && !existsSync(`${this.expPath}/vm.csv`)) {
-            writeFileSync(`${this.expPath}/vm.csv`, "QueryNum,Version,Runtime,TimeFirstResult,Throughput,NumResults\n", { encoding: "utf8", flag: "w" });
+            writeFileSync(`${this.expPath}/vm.csv`, "QueryNum,Version,Runtime,Throughput,NumResults\n", { encoding: "utf8", flag: "w" });
         }
         console.log(`VM - Query ${queryNumber} for version ${version}...`);
-        const [runtime, firstTime, results, throughput] = await this.measureRuntimeVM(queryNumber, version);
-        const outputString = `${queryNumber},${version},${runtime},${firstTime},${throughput},${results}\n`;
+        const [runtime, results, throughput] = await this.measureRuntimeVM(queryNumber, version);
+        const outputString = `${queryNumber},${version},${runtime},${throughput},${results}\n`;
         writeFileSync(`${this.expPath}/vm.csv`, outputString, { encoding:"utf8", flag:"a" });
         return this.measureQueryingVM(queryNumber, version+1);
     }
@@ -155,12 +178,12 @@ export class Evaluator {
             return this.measureQueryingVQ(queryNumber);
         }
         if (versionStart === 0 && versionEnd === 1 && !existsSync(`${this.expPath}/dm.csv`)) {
-            writeFileSync(`${this.expPath}/dm.csv`, "QueryNum,VersionStart,VersionEnd,Runtime,TimeFirstResult,Throughput,NumResults\n", { encoding:"utf8", flag:"w" });
+            writeFileSync(`${this.expPath}/dm.csv`, "QueryNum,VersionStart,VersionEnd,Runtime,Throughput,NumResults\n", { encoding:"utf8", flag:"w" });
         }
         if (versionStart !== versionEnd) {
             console.log(`DM - Query ${queryNumber} for version ${versionStart} and ${versionEnd}...`);
-            const [runtime, firstTime, results, throughput] = await this.measureRuntimeDM(queryNumber, versionStart, versionEnd);
-            const outputString = `${queryNumber},${versionStart},${versionEnd},${runtime},${firstTime},${throughput},${results}\n`;
+            const [runtime, results, throughput] = await this.measureRuntimeDM(queryNumber, versionStart, versionEnd);
+            const outputString = `${queryNumber},${versionStart},${versionEnd},${runtime},${throughput},${results}\n`;
             writeFileSync(`${this.expPath}/dm.csv`, outputString, { encoding:"utf8", flag:"a" });
         }
         versionStart = (versionStart + 1) % 2;
@@ -181,11 +204,11 @@ export class Evaluator {
             return;
         }
         if (!existsSync(`${this.expPath}/vq.csv`)) {
-            writeFileSync(`${this.expPath}/vq.csv`, "QueryNum,Runtime,TimeFirstResult,Throughput,NumResults\n", { encoding:"utf8", flag:"w" });
+            writeFileSync(`${this.expPath}/vq.csv`, "QueryNum,Runtime,Throughput,NumResults\n", { encoding:"utf8", flag:"w" });
         }
         console.log(`VQ - Query ${queryNumber}...`);
-        const [runtime, firstTime, results, throughput] = await this.measureRuntimeVQ(queryNumber);
-        writeFileSync(`${this.expPath}/vq.csv`, `${queryNumber},${runtime},${firstTime},${throughput},${results}\n`, { encoding:"utf8", flag:"a" });
+        const [runtime, results, throughput] = await this.measureRuntimeVQ(queryNumber);
+        writeFileSync(`${this.expPath}/vq.csv`, `${queryNumber},${runtime},${throughput},${results}\n`, { encoding:"utf8", flag:"a" });
         return this.measureQueryingVM(queryNumber+1, 0);
     }
 
